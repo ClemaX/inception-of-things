@@ -15,8 +15,6 @@ nodes = [
 ]
 
 VM_PROVISION_K3S = "provision/k3s.sh"
-VM_PROVISION_K3S_SERVER = "provision/k3s-server.sh"
-VM_PROVISION_K3S_AGENT = "provision/k3s-agent.sh"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 	config.vm.box = "generic/alpine318"
