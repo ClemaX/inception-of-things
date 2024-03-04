@@ -7,6 +7,12 @@ VM_NAME="#{ENV['USER']}"
 VM_SUFFIX_SERVER="S"
 VM_SUFFIX_AGENT="SW"
 
+VM_SHARE_PATH="shared"
+VM_SHARE_MOUNTPOINT="/mnt/shared"
+
+VM_PROVISION_K3S = "provision/k3s.sh"
+VM_PROVISION_K3S_TOKEN_GET = "provision/k3s-token-get.sh"
+
 K3S_SERVER_IP="192.168.56.110"
 
 nodes = [
@@ -22,40 +28,57 @@ nodes = [
 	},
 ]
 
-VM_PROVISION_K3S = "provision/k3s.sh"
+def provision_server(node, config)
+	# Download K3S Server token
+	config.trigger.after [:provision, :up] do |trigger|
+		trigger.name = "download token"
+		trigger.run = {
+			path: VM_PROVISION_K3S_TOKEN_GET,
+			args: [node[:name], "#{VM_SHARE_PATH}/token"]
+		}
+	end
+
+	# Install K3S Server
+	config.vm.provision "shell",
+		path: VM_PROVISION_K3S,
+		args: ["--node-external-ip", "#{K3S_SERVER_IP}"]
+end
+
+def provision_agent(_, config)
+	# Share K3S Server token with Agent
+	config.vm.synced_folder "#{VM_SHARE_PATH}/", "#{VM_SHARE_MOUNTPOINT}/"
+
+	# Install K3S Agent
+	config.vm.provision "shell",
+		path: VM_PROVISION_K3S,
+		env: {
+			:K3S_URL => "https://#{K3S_SERVER_IP}:6443",
+			:K3S_TOKEN_FILE => "#{VM_SHARE_MOUNTPOINT}/token"
+		}
+end
+
+def provision(node, config)
+	config.vm.define node[:name], primary: node[:type] == "server" do |node_config|
+		# Setup VirtualBox provider
+		node_config.vm.provider "virtualbox" do |vbox|
+			vbox.name = node[:name]
+			# Use linked clones if available
+			vbox.linked_clone = true if HAS_LINKED_CLONE
+		end
+
+		# Setup host-only networking
+		node_config.vm.network "private_network", ip: node[:ip]
+		node_config.vm.hostname = node[:name]
+
+		# Dispatch provisioning according to node type
+		send("provision_#{node[:type]}", node, node_config)
+	end
+end
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 	config.vm.box = "generic/alpine318"
 
 	nodes.each do |node|
-		config.vm.define node[:name], primary: node[:type] == "server" do |node_config|
-			# Setup VirtualBox provider
-			node_config.vm.provider "virtualbox" do |vbox|
-				vbox.name = node[:name]
-				# Use linked clones if available
-				vbox.linked_clone = true if HAS_LINKED_CLONE
-			end
-
-			# Setup host-only networking
-			node_config.vm.network "private_network", ip: node[:ip]
-			node_config.vm.hostname = node[:name]
-
-			if node[:type] == "server"
-				# Download K3S Server token
-				node_config.trigger.after [:provision, :up] do |trigger|
-					trigger.name = "download token"
-					trigger.run = { inline: "/bin/bash -c 'umask 077 && vagrant ssh --no-tty -c \"sudo cat /var/lib/rancher/k3s/server/node-token\" \"#{node[:name]}\" > shared/token'" }
-				end
-
-				# Provision K3S Server
-				node_config.vm.provision "shell", path: VM_PROVISION_K3S, env: { :K3S_EXTERNAL_IP => K3S_SERVER_IP }
-			elsif node[:type] == "agent"
-				# Share K3S Server token with Agent
-				node_config.vm.synced_folder "shared/", "/mnt/shared/"
-
-				# Provision K3S Agent
-				node_config.vm.provision "shell", path: VM_PROVISION_K3S, env: { :K3S_URL => "https://#{K3S_SERVER_IP}:6443", :K3S_TOKEN_FILE => "/mnt/shared/token" }
-			end
-		end
+		provision node, config
 	end
 end
