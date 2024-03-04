@@ -40,8 +40,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 				end
 
 				# Provision K3S Server
-				node_config.vm.provision "shell", path: VM_PROVISION_K3S	
+				node_config.vm.provision "shell", path: VM_PROVISION_K3S
 			elsif node[:type] == "agent"
+				# Share K3S Server token with Agent
 				node_config.vm.synced_folder "shared/", "/mnt/shared/"
 
 				# Provision K3S Agent
