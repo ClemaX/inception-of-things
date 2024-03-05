@@ -2,16 +2,12 @@
 
 set -eu
 
-k3s_host="$1"
-token_dst="$2"
+TOKEN_SRC='/var/lib/rancher/k3s/server/node-token'
 
-touch "$token_dst"
-chmod 600 "$token_dst"
+token_dst="$1"
 
-vagrant ssh --no-tty "$k3s_host" -c "
-    sudo /bin/bash -c \"
-        cd /var/lib/rancher/k3s/server &&
-        { until [ -f node-token ]; do sleep 1; done } >&2 &&
-        cat node-token
-    \"
-" > "$token_dst"
+{ until [ -f "$TOKEN_SRC" ]; do sleep 1; done } >&2
+
+umask
+
+cp "$TOKEN_SRC" "$token_dst"

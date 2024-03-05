@@ -29,14 +29,17 @@ nodes = [
 ]
 
 def provision_server(node, config)
-	# Download K3S Server token
+	# Update K3S Server token after `provision` and `up`
 	config.trigger.after [:provision, :up] do |trigger|
-		trigger.name = "download token"
-		trigger.run = {
+		trigger.name = "update shared token"
+		trigger.run_remote = {
 			path: VM_PROVISION_K3S_TOKEN_GET,
-			args: [node[:name], "#{VM_SHARE_PATH}/token"]
+			args: ["#{VM_SHARE_MOUNTPOINT}/token"]
 		}
 	end
+
+	# Share K3S Server token directory with Server
+	config.vm.synced_folder "#{VM_SHARE_PATH}/", "#{VM_SHARE_MOUNTPOINT}/"
 
 	# Install K3S Server
 	config.vm.provision "shell",
@@ -45,7 +48,7 @@ def provision_server(node, config)
 end
 
 def provision_agent(_, config)
-	# Share K3S Server token with Agent
+	# Share K3S Server token directory with Agent
 	config.vm.synced_folder "#{VM_SHARE_PATH}/", "#{VM_SHARE_MOUNTPOINT}/"
 
 	# Install K3S Agent
