@@ -1,6 +1,6 @@
-VAGRANTFILE_API_VERSION = "2"
+require "../lib/Provisioner"
 
-HAS_LINKED_CLONE = Gem::Version.new(Vagrant::VERSION) >= Gem::Version.new('1.8.0')
+VAGRANTFILE_API_VERSION = "2"
 
 VM_NAME="#{ENV['USER']}"
 
@@ -17,19 +17,6 @@ VM_IP_SUBNET="192.168.56"
 VM_IP_HOSTID_BASE=110
 
 K3S_SERVER_IP_INTERNAL="#{VM_IP_SUBNET}.#{VM_IP_HOSTID_BASE}"
-
-$vm_ip_hostid=VM_IP_HOSTID_BASE
-
-nodes = [
-	{
-		type: "server",
-		name: "#{VM_NAME}#{VM_SUFFIX_SERVER}",
-	},
-	{
-		type: "agent",
-		name: "#{VM_NAME}#{VM_SUFFIX_AGENT}",
-	},
-]
 
 def provision_server(node, config)
 	# Update K3S Server token after `provision` and `up`
@@ -64,32 +51,21 @@ def provision_agent(node, config)
 		args: ["--node-ip", node[:ip]]
 end
 
-def provision(node, config)
-	config.vm.define node[:name], primary: node[:type] == "server" do |node_config|
-		# Setup VirtualBox provider
-		node_config.vm.provider "virtualbox" do |vbox|
-			vbox.name = node[:name]
-			# Use linked clones if available
-			vbox.linked_clone = true if HAS_LINKED_CLONE
-		end
+nodes = [
+	{
+		type: "server",
+		name: "#{VM_NAME}#{VM_SUFFIX_SERVER}",
+	},
+	{
+		type: "agent",
+		name: "#{VM_NAME}#{VM_SUFFIX_AGENT}",
+	},
+]
 
-		# Set Node IP 
-		node[:ip] = "#{VM_IP_SUBNET}.#{$vm_ip_hostid}"
-		$vm_ip_hostid += 1
-
-		# Setup host-only networking
-		node_config.vm.network "private_network", ip: node[:ip]
-		node_config.vm.hostname = node[:name]
-
-		# Dispatch provisioning according to node type
-		send("provision_#{node[:type]}", node, node_config)
-	end
-end
+provisioner = Provisioner.new(VM_IP_SUBNET, VM_IP_HOSTID_BASE)
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 	config.vm.box = "generic/alpine318"
 
-	nodes.each do |node|
-		provision node, config
-	end
+	provisioner.provision nodes, config
 end
