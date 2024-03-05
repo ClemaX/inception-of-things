@@ -13,17 +13,20 @@ VM_SHARE_MOUNTPOINT="/mnt/shared"
 VM_PROVISION_K3S = "provision/k3s.sh"
 VM_PROVISION_K3S_TOKEN_GET = "provision/k3s-token-get.sh"
 
-K3S_SERVER_IP="192.168.56.110"
+VM_IP_SUBNET="192.168.56"
+VM_IP_HOSTID_BASE=110
+
+K3S_SERVER_IP_INTERNAL="#{VM_IP_SUBNET}.#{VM_IP_HOSTID_BASE}"
+
+$vm_ip_hostid=VM_IP_HOSTID_BASE
 
 nodes = [
 	{
 		type: "server",
-		ip: K3S_SERVER_IP,
 		name: "#{VM_NAME}#{VM_SUFFIX_SERVER}",
 	},
 	{
 		type: "agent",
-		ip: "192.168.56.111",
 		name: "#{VM_NAME}#{VM_SUFFIX_AGENT}",
 	},
 ]
@@ -44,20 +47,21 @@ def provision_server(node, config)
 	# Install K3S Server
 	config.vm.provision "shell",
 		path: VM_PROVISION_K3S,
-		args: ["--node-external-ip", "#{K3S_SERVER_IP}"]
+		args: ["--node-ip", node[:ip]]
 end
 
-def provision_agent(_, config)
+def provision_agent(node, config)
 	# Share K3S Server token directory with Agent
 	config.vm.synced_folder "#{VM_SHARE_PATH}/", "#{VM_SHARE_MOUNTPOINT}/"
 
 	# Install K3S Agent
 	config.vm.provision "shell",
-		path: VM_PROVISION_K3S,
 		env: {
-			:K3S_URL => "https://#{K3S_SERVER_IP}:6443",
+			:K3S_URL => "https://#{K3S_SERVER_IP_INTERNAL}:6443",
 			:K3S_TOKEN_FILE => "#{VM_SHARE_MOUNTPOINT}/token"
-		}
+		},
+		path: VM_PROVISION_K3S,
+		args: ["--node-ip", node[:ip]]
 end
 
 def provision(node, config)
@@ -68,6 +72,10 @@ def provision(node, config)
 			# Use linked clones if available
 			vbox.linked_clone = true if HAS_LINKED_CLONE
 		end
+
+		# Set Node IP 
+		node[:ip] = "#{VM_IP_SUBNET}.#{$vm_ip_hostid}"
+		$vm_ip_hostid += 1
 
 		# Setup host-only networking
 		node_config.vm.network "private_network", ip: node[:ip]
