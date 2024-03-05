@@ -8,6 +8,6 @@ token_dst="$1"
 
 { until [ -f "$TOKEN_SRC" ]; do sleep 1; done } >&2
 
-umask
+umask 177
 
 cp "$TOKEN_SRC" "$token_dst"
