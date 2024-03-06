@@ -4,6 +4,9 @@ commonLabels:
   app: b
 resources:
   - ../../base/
+replicas:
+  - name: http-server-b
+    count: 3
 configMapGenerator:
   - name: webroot
     files:
