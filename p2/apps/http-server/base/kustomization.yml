@@ -1,0 +1,4 @@
+namespace: iot
+resources:
+  - deployment.yml
+  - service.yml

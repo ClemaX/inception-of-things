@@ -1,0 +1,19 @@
+namespace: iot
+nameSuffix: -b
+commonLabels:
+  app: b
+resources:
+  - ../../base/
+configMapGenerator:
+  - name: webroot
+    files:
+    - webroot/index.html
+patches:
+- target:
+    kind: Service
+    name: http-server-b
+  patch: |
+    - op: replace
+      path: /spec/selector/app
+      value: b
+

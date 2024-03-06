@@ -1,17 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: iot
-  name: a
+  name: http-server
 spec:
   selector:
     matchLabels:
-      app: a
+      run: http-server
   replicas: 1
   template:
     metadata:
       labels:
-        app: a
+        run: http-server
     spec:
       containers:
         - name: nginx
@@ -24,5 +23,5 @@ spec:
               readOnly: true
       volumes:
         - name: webroot
-          hostPath:
-            path: /mnt/apps/a/webroot
+          configMap:
+            name: webroot

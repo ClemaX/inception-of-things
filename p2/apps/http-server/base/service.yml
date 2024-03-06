@@ -1,11 +1,10 @@
 apiVersion: v1
 kind: Service
 metadata:
-  namespace: iot
-  name: a
+  name: http-server
 spec:
   selector:
-    app: a
+    run: http-server
   ports:
     - protocol: TCP
       port: 80

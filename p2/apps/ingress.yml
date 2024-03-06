@@ -12,7 +12,17 @@ spec:
         path: /
         backend:
           service:
-            name: a
+            name: http-server-a
+            port:
+              number: 80
+  - host: b.iot 
+    http:
+      paths:
+      - pathType: Prefix
+        path: /
+        backend:
+          service:
+            name: http-server-b
             port:
               number: 80
   - http:
@@ -21,6 +31,6 @@ spec:
         path: /
         backend:
           service:
-            name: a
+            name: http-server-c
             port:
               number: 80

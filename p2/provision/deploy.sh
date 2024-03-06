@@ -12,15 +12,17 @@ until kubectl wait --for condition=Ready nodes --all 2>/dev/null; do sleep 1; do
 # Create 'iot' Namespace
 kubectl create namespace iot
 
-# Deploy Apps
-for app_dir in ./*/
-do
-    app_name=$(basename "$app_dir")
+pushd http-server/overlays >/dev/null
+    # Deploy Apps
+    for overlay_dir in ./*/
+    do
+        overlay_name=$(basename "$overlay_dir")
 
-    echo "Deploying '$app_name'..."
+        echo "Deploying '$overlay_name'..."
 
-    kubectl apply -f "$app_dir"
-done
+        kubectl apply -k "$overlay_dir"
+    done
+popd >/dev/null
 
 # Deploy Ingress
 kubectl apply -f ingress.yml
