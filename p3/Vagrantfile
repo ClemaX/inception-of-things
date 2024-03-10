@@ -13,21 +13,26 @@ VM_PROVISION_UPGRADE = "provision/apk-upgrade.sh"
 VM_PROVISION_DOCKER = "provision/docker.sh"
 VM_PROVISION_KUBECTL = "provision/kubectl.sh"
 VM_PROVISION_K3D = "provision/k3d.sh"
+VM_PROVISION_ARGOCD_CLI = "provision/argocd-cli.sh"
 
 VM_PROVISION_DEPLOY = "provision/deploy.sh"
 
 VM_IP_SUBNET="192.168.56"
 VM_IP_HOSTID_BASE=110
 
-K3S_SERVER_IP_INTERNAL="#{VM_IP_SUBNET}.#{VM_IP_HOSTID_BASE}"
+SERVER_DEPS = [
+	VM_PROVISION_UPGRADE,
+	VM_PROVISION_DOCKER,
+	VM_PROVISION_KUBECTL,
+	VM_PROVISION_K3D,
+	VM_PROVISION_ARGOCD_CLI
+]
 
 def provision_server(node, config)
-	[
-		VM_PROVISION_UPGRADE,
-		VM_PROVISION_DOCKER,
-		VM_PROVISION_KUBECTL,
-		VM_PROVISION_K3D,
-	].each do |script|
+	# Share apps with K3S Server
+	config.vm.synced_folder VM_APPS_PATH, VM_APPS_MOUNTPOINT, type: "rsync"
+
+	SERVER_DEPS.each do |script|
 		config.vm.provision "shell",
 			path: script
 	end
@@ -37,7 +42,8 @@ def provision_server(node, config)
 		inline: "echo Rebooting..."
 
 	config.vm.provision "shell",
-		path: VM_PROVISION_DEPLOY
+		path: VM_PROVISION_DEPLOY,
+		args: [VM_APPS_MOUNTPOINT]
 end
 
 nodes = [
