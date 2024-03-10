@@ -1,0 +1,56 @@
+require "../lib/Provisioner"
+
+VAGRANTFILE_API_VERSION = "2"
+
+VM_NAME="#{ENV['USER']}"
+
+VM_SUFFIX_SERVER="S"
+
+VM_APPS_PATH="apps"
+VM_APPS_MOUNTPOINT="/mnt/apps"
+
+VM_PROVISION_UPGRADE = "provision/apk-upgrade.sh"
+VM_PROVISION_DOCKER = "provision/docker.sh"
+VM_PROVISION_KUBECTL = "provision/kubectl.sh"
+VM_PROVISION_K3D = "provision/k3d.sh"
+
+VM_PROVISION_DEPLOY = "provision/deploy.sh"
+
+VM_IP_SUBNET="192.168.56"
+VM_IP_HOSTID_BASE=110
+
+K3S_SERVER_IP_INTERNAL="#{VM_IP_SUBNET}.#{VM_IP_HOSTID_BASE}"
+
+def provision_server(node, config)
+	[
+		VM_PROVISION_UPGRADE,
+		VM_PROVISION_DOCKER,
+		VM_PROVISION_KUBECTL,
+		VM_PROVISION_K3D,
+	].each do |script|
+		config.vm.provision "shell",
+			path: script
+	end
+
+	config.vm.provision "shell",
+		reboot: true,
+		inline: "echo Rebooting..."
+
+	config.vm.provision "shell",
+		path: VM_PROVISION_DEPLOY
+end
+
+nodes = [
+	{
+		type: "server",
+		name: "#{VM_NAME}#{VM_SUFFIX_SERVER}",
+	},
+]
+
+provisioner = Provisioner.new(VM_IP_SUBNET, VM_IP_HOSTID_BASE)
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+	config.vm.box = "generic/alpine318"
+
+	provisioner.provision nodes, config
+end
