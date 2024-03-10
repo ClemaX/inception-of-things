@@ -1,4 +1,4 @@
-require "../lib/Provisioner"
+require File.join(File.dirname(__FILE__), "..", "lib/Provisioner")
 
 VAGRANTFILE_API_VERSION = "2"
 
