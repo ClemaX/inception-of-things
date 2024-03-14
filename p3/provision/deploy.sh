@@ -4,6 +4,9 @@ set -eu
 
 apps_path="$1"
 cluster_name="${2:-iot}"
+ 
+# Wait for docker daemon to be ready
+until [ -e /var/run/docker.sock ]; do sleep 1; done
 
 # Create k3d cluster
 k3d cluster create "$cluster_name" --port 443:443@loadbalancer
