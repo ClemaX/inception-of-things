@@ -1,8 +1,11 @@
-require File.join(File.dirname(__FILE__), "..", "lib/Provisioner")
+require File.join(File.dirname(__FILE__), "..", "lib", "Provisioner")
 
 VAGRANTFILE_API_VERSION = "2"
 
 VM_NAME="#{ENV['USER']}"
+
+VM_RAM_MB=1024
+VM_CPUS=2
 
 VM_SUFFIX_SERVER="S"
 VM_SUFFIX_AGENT="SW"
@@ -66,6 +69,10 @@ provisioner = Provisioner.new(VM_IP_SUBNET, VM_IP_HOSTID_BASE)
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 	config.vm.box = "generic/alpine318"
+        config.vm.provider "virtualbox" do |domain|
+          domain.memory = VM_RAM_MB
+          domain.cpus = VM_CPUS
+        end
 
 	provisioner.provision nodes, config
 end
