@@ -1,0 +1,13 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  namespace: argocd
+  name: wil-iot
+spec:
+  destination:
+    namespace: dev
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    path: .
+    repoURL: https://github.com/ClemaX/inception-of-things-config.git

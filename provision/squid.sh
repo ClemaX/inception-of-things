@@ -2,8 +2,10 @@
 
 set -eu
 
+export DEBIAN_FRONTEND=noninteractive
+
 # Install Squid
-apt install --no-install-recommends squid
+apt-get -yq install --no-install-recommends squid
 
 # Configure Squid to allow connections from localnet
 cat > /etc/squid/conf.d/debian.conf << EOF

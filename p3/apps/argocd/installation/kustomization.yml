@@ -3,5 +3,6 @@ kind: Kustomization
 namespace: argocd
 resources:
   - https://raw.githubusercontent.com/argoproj/argo-cd/v2.8.11/manifests/install.yaml
+  - ingress.yml
 patches:
   - path: argocd-cmd-params-cm-patch.yml

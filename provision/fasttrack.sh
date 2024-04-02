@@ -2,6 +2,14 @@
 
 set -eu
 
+export DEBIAN_FRONTEND=noninteractive
+
+# Update Packages
+apt-get -yq update
+
+# Install Fasttrack Repository Keyring
+apt-get -yq install fasttrack-archive-keyring
+
 # Add Fasttrack APT Repository
 cat >> /etc/apt/sources.list << EOF
 deb https://fasttrack.debian.net/debian-fasttrack/ bookworm-fasttrack main contrib
@@ -9,8 +17,5 @@ deb https://fasttrack.debian.net/debian-fasttrack/ bookworm-backports-staging ma
 EOF
 
 # Update and upgrade Packages
-apt update
-apt upgrade
-
-# Install Fasttrack Repository Keyring
-apt install fasttrack-archive-keyring
+apt-get -yq update
+apt-get -yq upgrade

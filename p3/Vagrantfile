@@ -4,7 +4,7 @@ VAGRANTFILE_API_VERSION = "2"
 
 VM_NAME="#{ENV['USER']}"
 
-VM_RAM_MB=1024
+VM_RAM_MB=2048
 VM_CPUS=4
 
 VM_SUFFIX_SERVER="S"
@@ -40,9 +40,7 @@ def provision_server(node, config)
 			path: script
 	end
 
-	config.vm.provision "shell",
-		reboot: true,
-		inline: "echo Rebooting..."
+	config.vm.provision "reload"
 
 	config.vm.provision "shell",
 		path: VM_PROVISION_DEPLOY,

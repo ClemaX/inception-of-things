@@ -1,22 +1,23 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: ingress 
-  namespace: argocd
+  name: ingress
+  namespace: dev
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
 spec:
   rules:
-  - http:
+  - host: wil.iot
+    http:
       paths:
       - pathType: Prefix
         path: /
         backend:
           service:
-            name: argocd-server
+            name: iot-wil
             port:
               number: 80
   tls:
   - hosts:
-    - argocd.iot
-    secretName: argocd-iot
+    - wil.iot
+    secretName: wil-iot
