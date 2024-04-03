@@ -41,7 +41,7 @@ nodes = [
 	},
 ]
 
-provisioner = Provisioner.new(VM_IP_SUBNET, VM_IP_HOSTID_BASE)
+provisioner = Provisioner.new()
 
 Vagrant.configure("2") do |config|
 	config.vm.box = "bento/debian-12.4"
