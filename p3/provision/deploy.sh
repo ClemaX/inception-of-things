@@ -12,14 +12,14 @@ until [ -e /var/run/docker.sock ]; do sleep 1; done
 k3d cluster create "$cluster_name" --port 443:443@loadbalancer
 
 # Wait for Nodes to be Ready
-until kubectl wait --timeout 0 --for condition=Ready nodes --all 2>/dev/null; do sleep 1; done
+until kubectl wait --timeout 15m --for condition=Ready nodes --all 2>/dev/null; do sleep 1; done
 
 # Install Argo CD
 kubectl create namespace argocd
 kubectl apply -k "$apps_path/argocd/installation"
 
 # Wait for Argo CD pods to be Ready
-kubectl wait --timeout 0 --for condition=Ready pods -n argocd --all
+kubectl wait --timeout 15m --for condition=Ready pods -n argocd --all
 
 # Add argocd route hostname to /etc/hosts
 echo '127.0.0.1	argocd.iot' >> /etc/hosts
