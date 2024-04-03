@@ -32,7 +32,7 @@ def provision_server(node, config)
 	end
 
 	# Share K3S Server token directory with Server
-	config.vm.synced_folder "#{VM_SHARE_PATH}/", "#{VM_SHARE_MOUNTPOINT}/"
+	config.vm.synced_folder "#{VM_SHARE_PATH}/", "#{VM_SHARE_MOUNTPOINT}/", create: true
 
 	# Install K3S Server
 	config.vm.provision "shell",
@@ -42,7 +42,7 @@ end
 
 def provision_agent(node, config)
 	# Share K3S Server token directory with Agent
-	config.vm.synced_folder "#{VM_SHARE_PATH}/", "#{VM_SHARE_MOUNTPOINT}/"
+	config.vm.synced_folder "#{VM_SHARE_PATH}/", "#{VM_SHARE_MOUNTPOINT}/", create: true
 
 	# Install K3S Agent
 	config.vm.provision "shell",
