@@ -26,6 +26,9 @@ HOST_DEPS = [
 def provision_host(node, config)
 	config.vm.network "forwarded_port", guest: 3128, host: 3128
 
+	config.vm.provision "shell",
+		inline: "hostnamectl set-hostname #{node[:name]} && sed -i 's/debian-12$/iot/g' /etc/hosts"
+
 	HOST_DEPS.each do |script|
 		config.vm.provision "shell",
 			path: script
