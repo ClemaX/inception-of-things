@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -eu
+set -euo pipefail
 
 apps_path="$1"
 cluster_name="${2:-iot}"
@@ -25,9 +25,9 @@ kubectl wait --timeout 15m --for condition=Ready pods -n argocd --all
 echo '127.0.0.1	argocd.iot' >> /etc/hosts
 
 # Configure Argo CD Context
-until ARGOCD_PASSWORD=$(kubectl get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d); do sleep 1; done
+until ARGOCD_PASSWORD=$(kubectl get secret -n argocd argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d); do sleep 1; done
 
-argocd login --insecure argocd.iot --username admin --password "$ARGOCD_PASSWORD"
+argocd --grpc-web login --insecure argocd.iot --username admin --password "$ARGOCD_PASSWORD"
 
 kubectl config set-context --current --namespace=argocd
 
@@ -37,4 +37,4 @@ kubectl create namespace dev
 # Install Wil's App
 kubectl apply -f "$apps_path/wil-iot"
 
-argocd app sync wil-iot
+argocd --grpc-web app sync wil-iot
