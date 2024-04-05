@@ -6,11 +6,11 @@ VM_NAME="#{ENV['USER']}"
 
 VM_SUFFIX_SERVER="S"
 
-VM_APPS_PATH="apps"
+VM_APPS_PATH="confs"
 VM_APPS_MOUNTPOINT="/mnt/apps"
 
-VM_PROVISION_K3S = "provision/k3s.sh"
-VM_PROVISION_DEPLOY= "provision/deploy.sh"
+VM_PROVISION_K3S = "scripts/k3s.sh"
+VM_PROVISION_DEPLOY= "scripts/deploy.sh"
 
 VM_IP_SUBNET="192.168.56"
 VM_IP_HOSTID_BASE=110

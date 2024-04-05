@@ -13,8 +13,8 @@ VM_SUFFIX_AGENT="SW"
 VM_SHARE_PATH="shared"
 VM_SHARE_MOUNTPOINT="/mnt/shared"
 
-VM_PROVISION_K3S = "provision/k3s.sh"
-VM_PROVISION_K3S_TOKEN_GET = "provision/k3s-token-get.sh"
+VM_PROVISION_K3S = "scripts/k3s.sh"
+VM_PROVISION_K3S_TOKEN_GET = "scripts/k3s-token-get.sh"
 
 VM_IP_SUBNET="192.168.56"
 VM_IP_HOSTID_BASE=110

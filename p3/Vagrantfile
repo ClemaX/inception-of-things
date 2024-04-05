@@ -9,16 +9,16 @@ VM_CPUS=4
 
 VM_SUFFIX_SERVER="S"
 
-VM_APPS_PATH="apps"
+VM_APPS_PATH="confs"
 VM_APPS_MOUNTPOINT="/mnt/apps"
 
-VM_PROVISION_UPGRADE = "provision/apk-upgrade.sh"
-VM_PROVISION_DOCKER = "provision/docker.sh"
-VM_PROVISION_KUBECTL = "provision/kubectl.sh"
-VM_PROVISION_K3D = "provision/k3d.sh"
-VM_PROVISION_ARGOCD_CLI = "provision/argocd-cli.sh"
+VM_PROVISION_UPGRADE = "scripts/apk-upgrade.sh"
+VM_PROVISION_DOCKER = "scripts/docker.sh"
+VM_PROVISION_KUBECTL = "scripts/kubectl.sh"
+VM_PROVISION_K3D = "scripts/k3d.sh"
+VM_PROVISION_ARGOCD_CLI = "scripts/argocd-cli.sh"
 
-VM_PROVISION_DEPLOY = "provision/deploy.sh"
+VM_PROVISION_DEPLOY = "scripts/deploy.sh"
 
 VM_IP_SUBNET="192.168.56"
 VM_IP_HOSTID_BASE=110

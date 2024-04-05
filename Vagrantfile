@@ -10,10 +10,10 @@ VM_CPUS=4
 VM_IP_SUBNET="192.168.57"
 VM_IP_HOSTID_BASE=2
 
-VM_PROVISION_FASTTRACK = "provision/fasttrack.sh"
-VM_PROVISION_VIRTUALBOX = "provision/virtualbox.sh"
-VM_PROVISION_VAGRANT = "provision/vagrant.sh"
-VM_PROVISION_SQUID = "provision/squid.sh"
+VM_PROVISION_FASTTRACK = "scripts/fasttrack.sh"
+VM_PROVISION_VIRTUALBOX = "scripts/virtualbox.sh"
+VM_PROVISION_VAGRANT = "scripts/vagrant.sh"
+VM_PROVISION_SQUID = "scripts/squid.sh"
 
 
 HOST_DEPS = [
