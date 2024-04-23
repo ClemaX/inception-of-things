@@ -1,0 +1,77 @@
+require File.join(File.dirname(__FILE__), "..", "lib", "Provisioner")
+
+VAGRANTFILE_API_VERSION = "2"
+
+VM_NAME="#{ENV['USER']}"
+
+VM_RAM_MB=6144
+VM_CPUS=4
+
+VM_SUFFIX_SERVER="S"
+
+VM_APPS_PATH="confs"
+VM_APPS_MOUNTPOINT="/mnt/apps"
+
+VM_PROVISION_UPGRADE = "scripts/apk-upgrade.sh"
+VM_PROVISION_SQUID = "scripts/squid.sh"
+VM_PROVISION_GIT = "scripts/git.sh"
+VM_PROVISION_DOCKER = "scripts/docker.sh"
+VM_PROVISION_KUBECTL = "scripts/kubectl.sh"
+VM_PROVISION_K3D = "scripts/k3d.sh"
+VM_PROVISION_HELM = "scripts/helm.sh"
+VM_PROVISION_ARGOCD_CLI = "scripts/argocd-cli.sh"
+
+VM_PROVISION_DEPLOY = "scripts/deploy.sh"
+
+VM_IP_SUBNET="192.168.56"
+VM_IP_HOSTID_BASE=110
+
+SERVER_DEPS = [
+	VM_PROVISION_UPGRADE,
+	VM_PROVISION_SQUID,
+	VM_PROVISION_GIT,
+	VM_PROVISION_DOCKER,
+	VM_PROVISION_KUBECTL,
+	VM_PROVISION_K3D,
+	VM_PROVISION_HELM,
+	VM_PROVISION_ARGOCD_CLI
+]
+
+def provision_server(node, config)
+	# Forward HTTP Proxy
+	config.vm.network "forwarded_port", guest: 3128, host: 3128
+
+	# Share apps with K3S Server
+	config.vm.synced_folder VM_APPS_PATH, VM_APPS_MOUNTPOINT, type: "rsync"
+
+	SERVER_DEPS.each do |script|
+		config.vm.provision "shell",
+			path: script
+	end
+
+	config.vm.provision "reload"
+
+	config.vm.provision "shell",
+		path: VM_PROVISION_DEPLOY,
+		args: [VM_APPS_MOUNTPOINT]
+end
+
+nodes = [
+	{
+		type: "server",
+		name: "#{VM_NAME}#{VM_SUFFIX_SERVER}",
+	},
+]
+
+provisioner = Provisioner.new()
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+	config.vm.box = "generic/alpine318"
+
+        config.vm.provider "virtualbox" do |domain|
+          domain.memory = VM_RAM_MB
+          domain.cpus = VM_CPUS
+        end
+
+	provisioner.provision nodes, config
+end

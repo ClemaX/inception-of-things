@@ -1,0 +1,16 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  namespace: argocd
+  name: wil-iot
+spec:
+  syncPolicy:
+    automated:
+      prune: true
+  destination:
+    namespace: dev
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    path: .
+    repoURL: http://gitlab-webservice-default.gitlab.svc.cluster.local:8181/root/wil-iot.git

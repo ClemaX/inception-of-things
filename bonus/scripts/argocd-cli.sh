@@ -1,0 +1,1 @@
+../../p3/scripts/argocd-cli.sh
