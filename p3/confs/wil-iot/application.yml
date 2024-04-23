@@ -4,6 +4,9 @@ metadata:
   namespace: argocd
   name: wil-iot
 spec:
+  syncPolicy:
+    automated:
+      prune: true
   destination:
     namespace: dev
     server: https://kubernetes.default.svc
