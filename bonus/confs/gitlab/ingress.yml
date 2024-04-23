@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+spec:
+  rules:
+  - host: gitlab.iot
+    http:
+      paths:
+      - pathType: Prefix
+        path: /
+        backend:
+          service:
+            name: gitlab-webservice-default 
+            port:
+              number: 8181
+  tls:
+  - hosts:
+    - gitlab.iot
+    secretName: gitlab-iot
