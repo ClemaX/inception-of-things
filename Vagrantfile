@@ -4,8 +4,8 @@ require File.join(File.dirname(__FILE__), "lib", "Provisioner")
 
 VAGRANTFILE_API_VERSION = "2"
 
-VM_RAM_MB=4096
-VM_CPUS=4
+VM_RAM_MB=8096
+VM_CPUS=6
 
 VM_IP_SUBNET="192.168.57"
 VM_IP_HOSTID_BASE=2
