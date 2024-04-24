@@ -7,7 +7,7 @@ apps_path="$1"
 cd "$apps_path"
 
 # Wait for Nodes to be Ready
-until kubectl wait --for condition=Ready nodes --all 2>/dev/null; do sleep 1; done
+kubectl wait --timeout=15m --for condition=Ready nodes --all 2>/dev/null
 
 # Create 'iot' Namespace
 kubectl create namespace iot
