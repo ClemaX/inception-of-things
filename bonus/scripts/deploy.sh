@@ -62,8 +62,6 @@ kubectl apply -k "$apps_path/gitlab"
 # Install Argo CD
 kubectl apply -k "$apps_path/argocd/installation"
 
-# Wait for Argo CD pods to be Ready
-kubectl wait --timeout 15m --for condition=Ready pods -n argocd --all
 
 # Configure Argo CD Context
 until ARGOCD_PASSWORD=$(kubectl get secret -n argocd argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d); do sleep 1; done
@@ -72,14 +70,16 @@ argocd --grpc-web login --insecure "argocd.$domain_name" --username admin --pass
 
 kubectl config set-context --current --namespace=argocd
 
+# Wait for GitLab deployments to be ready
+kubectl wait --timeout 15m --for condition=Available deployment -n gitlab --all &
+
+# Wait for Argo CD pods to be Ready
+kubectl wait --timeout 15m --for condition=Ready pods -n argocd --all &
+
 # Restart Squid proxy
 service squid restart &
 
-# Wait for GitLab deployments to be ready
-kubectl wait --timeout 15m --for condition=Available deployment -n gitlab --all
-
-# Wait for Squid proxy to restart
-fg 2>/dev/null
+wait
 
 echo "Environment deployed successfully!"
 echo
