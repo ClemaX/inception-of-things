@@ -6,4 +6,4 @@ set -eu
 apk update
 
 # Upgrade packages
-apk upgrade
+apk upgrade 2>&1

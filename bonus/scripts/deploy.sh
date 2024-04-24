@@ -13,7 +13,7 @@ host_git_ssh_port="${4:-2222}"
 domain_name="$cluster_name"
 
 # Trust local CA
-mkcert -install
+mkcert -install 2>&1
 
 # Wait for docker daemon to be ready
 until [ -e /var/run/docker.sock ]; do sleep 1; done
@@ -37,7 +37,7 @@ pushd "$HOME/certs"
 	do
 		subdomain_name="$app.$domain_name"
 
-		mkcert "$subdomain_name"
+		mkcert "$subdomain_name" 2>&1
 
 		kubectl create namespace "$app"
 		kubectl create secret tls -n "$app" "$app-$domain_name" \
