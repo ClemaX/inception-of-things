@@ -2,7 +2,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   namespace: argocd
-  name: wil-iot
+  name: dev
 spec:
   syncPolicy:
     automated:
@@ -13,4 +13,4 @@ spec:
   project: default
   source:
     path: .
-    repoURL: http://gitlab-webservice-default.gitlab.svc.cluster.local:8181/root/wil-iot.git
+    repoURL: http://gitlab-webservice-default.gitlab.svc.cluster.local:8181/root/dev.git

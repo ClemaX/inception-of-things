@@ -17,8 +17,9 @@ http_port 3128
 cache deny all
 EOF
 
+# Restart the Squid service now
+rc-service squid stop --ifstarted
+rc-service squid start
+
 # Enable the Squid service at startup
 rc-update add squid
-
-# Start the Squid service now
-rc-service squid start --ifstopped

@@ -22,7 +22,7 @@ kubectl apply -k "$apps_path/argocd/installation"
 kubectl wait --timeout 15m --for condition=Ready pods -n argocd --all
 
 # Add argocd route hostname to /etc/hosts
-echo '127.0.0.1	argocd.iot' >> /etc/hosts
+echo '127.0.0.1	argocd.iot dev.iot' >> /etc/hosts
 
 # Configure Argo CD Context
 until ARGOCD_PASSWORD=$(kubectl get secret -n argocd argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d); do sleep 1; done
@@ -35,6 +35,6 @@ kubectl config set-context --current --namespace=argocd
 kubectl create namespace dev
 
 # Install Wil's App
-kubectl apply -f "$apps_path/wil-iot"
+kubectl apply -f "$apps_path/dev"
 
-argocd --grpc-web app sync wil-iot
+argocd --grpc-web app sync dev
