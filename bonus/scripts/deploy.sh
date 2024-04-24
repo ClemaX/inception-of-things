@@ -92,4 +92,4 @@ echo
 echo "You can now publish the demo application config to https://gitlab.$domain_name/root/dev.git and configure the repo visibility to 'Public' using the Web UI."
 echo
 echo "Once this is done, run the following command to deploy the app:"
-echo "kubectl apply -f '$apps_path/dev' && argocd --grpc-web app sync dev"
+echo "kubectl apply -f '$apps_path/dev'"
