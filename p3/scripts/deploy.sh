@@ -2,39 +2,47 @@
 
 set -euo pipefail
 
+APPS=(argocd dev)
+
 apps_path="$1"
 cluster_name="${2:-iot}"
+
+host_ingress_https_port="${3:-443}"
+
+domain_name="$cluster_name"
 
 # Wait for docker daemon to be ready
 until [ -e /var/run/docker.sock ]; do sleep 1; done
 
 # Create k3d cluster
-k3d cluster create "$cluster_name" --port 443:443@loadbalancer
+k3d cluster create "$cluster_name" \
+	--port "$host_ingress_https_port:443@loadbalancer"
 
-# Wait for Nodes to be Ready
-until kubectl wait --timeout 15m --for condition=Ready nodes --all 2>/dev/null; do sleep 1; done
+# Wait for nodes to be Ready
+echo "Waiting for nodes to be ready..."
+kubectl wait --timeout 15m --for condition=Ready nodes --all 2>/dev/null
+
+# Add app route hostnames to /etc/hosts
+echo "127.0.0.1 ${APPS[*]/%/.$domain_name}" >> /etc/hosts
+
+# Create app namespaces
+for app in "${APPS[@]}"
+do
+	kubectl create namespace "$app"
+done
 
 # Install Argo CD
-kubectl create namespace argocd
 kubectl apply -k "$apps_path/argocd/installation"
 
-# Wait for Argo CD pods to be Ready
+echo "Waiting for Argo CD pods to be ready..."
 kubectl wait --timeout 15m --for condition=Ready pods -n argocd --all
 
-# Add argocd route hostname to /etc/hosts
-echo '127.0.0.1	argocd.iot dev.iot' >> /etc/hosts
-
-# Configure Argo CD Context
-until ARGOCD_PASSWORD=$(kubectl get secret -n argocd argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d); do sleep 1; done
-
-argocd --grpc-web login --insecure argocd.iot --username admin --password "$ARGOCD_PASSWORD"
-
-kubectl config set-context --current --namespace=argocd
-
-# Create dev Namespace
-kubectl create namespace dev
-
-# Install Wil's App
+# Install Argo CD App
 kubectl apply -f "$apps_path/dev"
 
-argocd --grpc-web app sync dev
+cat <<EOF
+Environment deployed successfully!
+
+Use the following command to get the initial Argo CD admin password:
+	kubectl get secret -n argocd argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d; echo
+EOF

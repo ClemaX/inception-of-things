@@ -16,7 +16,6 @@ VM_PROVISION_UPGRADE = "scripts/apk-upgrade.sh"
 VM_PROVISION_DOCKER = "scripts/docker.sh"
 VM_PROVISION_KUBECTL = "scripts/kubectl.sh"
 VM_PROVISION_K3D = "scripts/k3d.sh"
-VM_PROVISION_ARGOCD_CLI = "scripts/argocd-cli.sh"
 
 VM_PROVISION_DEPLOY = "scripts/deploy.sh"
 
@@ -27,8 +26,7 @@ SERVER_DEPS = [
 	VM_PROVISION_UPGRADE,
 	VM_PROVISION_DOCKER,
 	VM_PROVISION_KUBECTL,
-	VM_PROVISION_K3D,
-	VM_PROVISION_ARGOCD_CLI
+	VM_PROVISION_K3D
 ]
 
 def provision_server(node, config)
