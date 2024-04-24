@@ -23,21 +23,24 @@ k3d cluster create "$cluster_name" \
 	--port "$host_ingress_https_port:443@loadbalancer" \
 	--port "$host_git_ssh_port:32022@loadbalancer"
 
-# Wait for Nodes to be Ready
-until kubectl wait --timeout 15m --for condition=Ready nodes --all 2>/dev/null; do sleep 1; done
+# Wait for nodes to be Ready
+echo "Waiting for nodes to be ready..."
+kubectl wait --timeout 15m --for condition=Ready nodes --all 2>/dev/null
 
 # Add app route hostnames to /etc/hosts
 echo "127.0.0.1 ${APPS[*]/%/.$domain_name}" >> /etc/hosts
 
 # Create app namespaces and certificates
-mkdir "$HOME/certs"
+echo "Creating app TLS certificates..."
 
-pushd "$HOME/certs"
+mkdir -p "$HOME/$domain_name/certs"
+
+pushd "$HOME/$domain_name/certs"
 	for app in "${APPS[@]}"
 	do
 		subdomain_name="$app.$domain_name"
 
-		mkcert "$subdomain_name" 2>&1
+		mkcert "$subdomain_name" 2>/dev/null
 
 		kubectl create namespace "$app"
 		kubectl create secret tls -n "$app" "$app-$domain_name" \
@@ -53,7 +56,7 @@ helm repo update
 helm upgrade --install gitlab gitlab/gitlab \
 	--namespace=gitlab \
 	--set "global.hosts.domain=$domain_name" \
-	--set "tls.secretName=gitlab-$domain_name" \
+	--set "global.ingress.tls.secretName=gitlab-$domain_name" \
 	--set "global.shell.port=$host_git_ssh_port" \
 	-f "$apps_path/gitlab/installation/values.yaml"
 
@@ -62,15 +65,9 @@ kubectl apply -k "$apps_path/gitlab"
 # Install Argo CD
 kubectl apply -k "$apps_path/argocd/installation"
 
+echo "Waiting for deployments and pods to be available..."
 
-# Configure Argo CD Context
-until ARGOCD_PASSWORD=$(kubectl get secret -n argocd argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d); do sleep 1; done
-
-argocd --grpc-web login --insecure "argocd.$domain_name" --username admin --password "$ARGOCD_PASSWORD"
-
-kubectl config set-context --current --namespace=argocd
-
-# Wait for GitLab deployments to be ready
+# Wait for GitLab deployments to be available
 kubectl wait --timeout 15m --for condition=Available deployment -n gitlab --all &
 
 # Wait for Argo CD pods to be Ready
@@ -81,15 +78,17 @@ service squid restart &
 
 wait
 
-echo "Environment deployed successfully!"
-echo
-echo "Use the following command to get the initial gitlab root password:"
-echo "kubectl get secret -n gitlab gitlab-gitlab-initial-root-password -ojsonpath='{.data.password}' | base64 -d ; echo"
-echo
-echo "Use the following command to get the initial argocd password:"
-echo "kubectl get secret -n argocd argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d; echo"
-echo
-echo "You can now publish the demo application config to https://gitlab.$domain_name/root/dev.git and configure the repo visibility to 'Public' using the Web UI."
-echo
-echo "Once this is done, run the following command to deploy the app:"
-echo "kubectl apply -f '$apps_path/dev'"
+cat <<EOF
+Environment deployed successfully!
+
+Use the following command to get the initial GitLab root password:
+	kubectl get secret -n gitlab gitlab-gitlab-initial-root-password -ojsonpath='{.data.password}' | base64 -d ; echo
+
+Use the following command to get the initial Argo CD admin password:
+	kubectl get secret -n argocd argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d; echo
+
+You can now publish the demo application config to https://gitlab.$domain_name/root/dev.git and configure the repo visibility to 'Public' using the Web UI.
+
+Once this is done, run the following command to deploy the app:
+	kubectl apply -f '$apps_path/dev'
+EOF
