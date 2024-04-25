@@ -7,20 +7,20 @@ VAGRANTFILE_API_VERSION = "2"
 VM_RAM_MB=8096
 VM_CPUS=6
 
-VM_IP_SUBNET="192.168.57"
-VM_IP_HOSTID_BASE=2
-
 VM_PROVISION_FASTTRACK = "scripts/fasttrack.sh"
 VM_PROVISION_VIRTUALBOX = "scripts/virtualbox.sh"
 VM_PROVISION_VAGRANT = "scripts/vagrant.sh"
 VM_PROVISION_SQUID = "scripts/squid.sh"
-
+VM_PROVISION_SHARED_FOLDER = "scripts/shared-folder.sh"
+VM_PROVISION_HOSTS = "scripts/hosts.sh"
 
 HOST_DEPS = [
 	VM_PROVISION_FASTTRACK,
 	VM_PROVISION_VIRTUALBOX,
 	VM_PROVISION_VAGRANT,
 	VM_PROVISION_SQUID,
+	VM_PROVISION_SHARED_FOLDER,
+	VM_PROVISION_HOSTS,
 ]
 
 def provision_host(node, config)
@@ -48,8 +48,8 @@ nodes = [
 
 provisioner = Provisioner.new()
 
-Vagrant.configure("2") do |config|
-	config.vm.box = "bento/debian-12.4"
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+	config.vm.box = "bento/debian-12.5"
 
 	config.vm.provider "virtualbox" do |vb|
 		vb.memory = VM_RAM_MB
