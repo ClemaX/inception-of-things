@@ -20,7 +20,10 @@ k3d cluster create "$cluster_name" \
 
 # Wait for nodes to be Ready
 echo "Waiting for nodes to be ready..."
-kubectl wait --timeout 15m --for condition=Ready nodes --all 2>/dev/null
+until kubectl wait --timeout 15m --for condition=Ready nodes --all 2>/dev/null
+do
+	sleep 1
+done
 
 # Add app route hostnames to /etc/hosts
 echo "127.0.0.1 ${APPS[*]/%/.$domain_name}" >> /etc/hosts
