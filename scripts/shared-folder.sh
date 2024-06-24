@@ -3,4 +3,7 @@
 set -eu
 
 # Add Shared Folder to fstab
-echo 'vagrant /vagrant vboxsf defaults 0 0' >> /etc/fstab
+
+ln -s /vagrant /home/vagrant/shared
+
+# mkdir -p /home/vagrant/shared

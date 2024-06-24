@@ -4,7 +4,7 @@ VAGRANTFILE_API_VERSION = "2"
 
 VM_NAME="#{ENV['USER']}"
 
-VM_RAM_MB=2048
+VM_RAM_MB=4096
 VM_CPUS=4
 
 VM_SUFFIX_SERVER="S"
@@ -55,7 +55,7 @@ nodes = [
 provisioner = Provisioner.new(VM_IP_SUBNET, VM_IP_HOSTID_BASE)
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
-	config.vm.box = "generic/alpine318"
+	config.vm.box = "generic/alpine319"
 
         config.vm.provider "virtualbox" do |domain|
           domain.memory = VM_RAM_MB

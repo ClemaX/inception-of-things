@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# add latest version packages to apt
+
 set -eu
 
 export DEBIAN_FRONTEND=noninteractive

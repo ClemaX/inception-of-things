@@ -9,3 +9,5 @@ apt-get -yq install --no-install-recommends vagrant
 
 # Install vagrant-reload plugin
 su vagrant -c 'vagrant plugin install vagrant-reload'
+
+

@@ -63,7 +63,7 @@ nodes = [
 provisioner = Provisioner.new()
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
-	config.vm.box = "generic/alpine318"
+	config.vm.box = "generic/alpine319"
 
         config.vm.provider "virtualbox" do |domain|
           domain.memory = VM_RAM_MB

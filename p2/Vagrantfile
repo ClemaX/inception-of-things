@@ -42,7 +42,7 @@ nodes = [
 provisioner = Provisioner.new(VM_IP_SUBNET, VM_IP_HOSTID_BASE)
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
-	config.vm.box = "generic/alpine318"
+	config.vm.box = "generic/alpine319"
 
 	provisioner.provision nodes, config
 end

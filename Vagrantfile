@@ -24,6 +24,7 @@ HOST_DEPS = [
 ]
 
 def provision_host(node, config)
+	# port squid proxy
 	config.vm.network "forwarded_port", guest: 3128, host: 3128
 
 	config.vm.provision "shell",
@@ -34,6 +35,8 @@ def provision_host(node, config)
 			path: script
 	end
 
+	config.vm.provision "shell",
+		inline: "echo \"export 'USER=#{ENV['USER']}'\" >> /home/vagrant/.profile"
 	config.vm.provision "shell",
 		reboot: true,
 		inline: "echo Rebooting..."
@@ -56,6 +59,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 		vb.cpus = VM_CPUS
 		vb.customize ["modifyvm", :id, "--nested-hw-virt", "on"]
 	end
+
 
 	provisioner.provision nodes, config
 end
