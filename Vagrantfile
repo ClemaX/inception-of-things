@@ -4,8 +4,10 @@ require File.join(File.dirname(__FILE__), "lib", "Provisioner")
 
 VAGRANTFILE_API_VERSION = "2"
 
+VM_BOX="bento/debian-12.5"
+
 VM_RAM_MB=8096
-VM_CPUS=6
+VM_CPUS=8
 
 VM_PROVISION_FASTTRACK = "scripts/fasttrack.sh"
 VM_PROVISION_VIRTUALBOX = "scripts/virtualbox.sh"
@@ -24,11 +26,11 @@ HOST_DEPS = [
 ]
 
 def provision_host(node, config)
-	# port squid proxy
+	# Forward Squid HTTP proxy port
 	config.vm.network "forwarded_port", guest: 3128, host: 3128
 
 	config.vm.provision "shell",
-		inline: "hostnamectl set-hostname #{node[:name]} && sed -i 's/debian-12$/iot/g' /etc/hosts"
+		inline: "hostnamectl set-hostname #{node[:name]} && sed -i 's/debian-12$/#{node[:name]}/g' /etc/hosts"
 
 	HOST_DEPS.each do |script|
 		config.vm.provision "shell",
@@ -37,6 +39,7 @@ def provision_host(node, config)
 
 	config.vm.provision "shell",
 		inline: "echo \"export 'USER=#{ENV['USER']}'\" >> /home/vagrant/.profile"
+
 	config.vm.provision "shell",
 		reboot: true,
 		inline: "echo Rebooting..."
@@ -52,7 +55,7 @@ nodes = [
 provisioner = Provisioner.new()
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
-	config.vm.box = "bento/debian-12.5"
+	config.vm.box = VM_BOX
 
 	config.vm.provider "virtualbox" do |vb|
 		vb.memory = VM_RAM_MB

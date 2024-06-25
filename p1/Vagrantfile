@@ -2,6 +2,8 @@ require File.join(File.dirname(__FILE__), "..", "lib", "Provisioner")
 
 VAGRANTFILE_API_VERSION = "2"
 
+VM_BOX = "generic/alpine319"
+
 VM_NAME="#{ENV['USER']}"
 
 VM_RAM_MB=1024
@@ -32,7 +34,8 @@ def provision_server(node, config)
 	end
 
 	# Share K3S Server token directory with Server
-	config.vm.synced_folder "#{VM_SHARE_PATH}/", "#{VM_SHARE_MOUNTPOINT}/", create: true
+	config.vm.synced_folder	"#{VM_SHARE_PATH}/", "#{VM_SHARE_MOUNTPOINT}/",
+		create: true
 
 	# Install K3S Server
 	config.vm.provision "shell",
@@ -42,7 +45,8 @@ end
 
 def provision_agent(node, config)
 	# Share K3S Server token directory with Agent
-	config.vm.synced_folder "#{VM_SHARE_PATH}/", "#{VM_SHARE_MOUNTPOINT}/", create: true
+	config.vm.synced_folder "#{VM_SHARE_PATH}/", "#{VM_SHARE_MOUNTPOINT}/",
+		create: true
 
 	# Install K3S Agent
 	config.vm.provision "shell",
@@ -68,7 +72,7 @@ nodes = [
 provisioner = Provisioner.new(VM_IP_SUBNET, VM_IP_HOSTID_BASE)
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
-	config.vm.box = "generic/alpine319"
+	config.vm.box = VM_BOX
         config.vm.provider "virtualbox" do |domain|
           domain.memory = VM_RAM_MB
           domain.cpus = VM_CPUS

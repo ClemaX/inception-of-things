@@ -2,12 +2,17 @@ require File.join(File.dirname(__FILE__), "..", "lib", "Provisioner")
 
 VAGRANTFILE_API_VERSION = "2"
 
-VM_NAME="#{ENV['USER']}"
+VM_BOX = "generic/alpine319"
 
-VM_SUFFIX_SERVER="S"
+VM_NAME = "#{ENV['USER']}"
 
-VM_APPS_PATH="confs"
-VM_APPS_MOUNTPOINT="/mnt/apps"
+VM_RAM_MB = 4096
+VM_CPUS = 4
+
+VM_SUFFIX_SERVER = "S"
+
+VM_K8S_CONF_PATH = "confs"
+VM_K8S_CONF_MOUNTPOINT = "/usr/local/etc/kubernetes"
 
 VM_PROVISION_K3S = "scripts/k3s.sh"
 VM_PROVISION_DEPLOY= "scripts/deploy.sh"
@@ -18,18 +23,20 @@ VM_IP_HOSTID_BASE=110
 K3S_SERVER_IP_INTERNAL="#{VM_IP_SUBNET}.#{VM_IP_HOSTID_BASE}"
 
 def provision_server(node, config)
-	# Share apps with K3S Server
-	config.vm.synced_folder VM_APPS_PATH, VM_APPS_MOUNTPOINT, type: "rsync"
+	# Sync K8S config
+	config.vm.synced_folder "#{VM_K8S_CONF_PATH}/", "#{VM_K8S_CONF_MOUNTPOINT}/",
+		type: "rsync",
+		create: true
 
 	# Install K3S Server
 	config.vm.provision "shell",
 		path: VM_PROVISION_K3S,
 		args: ["--node-ip", node[:ip]]
 
-	# Deploy K8S Apps
+	# Deploy K8S config
 	config.vm.provision "shell",
 		path: VM_PROVISION_DEPLOY,
-		args: [VM_APPS_MOUNTPOINT]
+		args: [VM_K8S_CONF_MOUNTPOINT]
 end
 
 nodes = [
@@ -42,7 +49,7 @@ nodes = [
 provisioner = Provisioner.new(VM_IP_SUBNET, VM_IP_HOSTID_BASE)
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
-	config.vm.box = "generic/alpine319"
+	config.vm.box = VM_BOX
 
 	provisioner.provision nodes, config
 end
