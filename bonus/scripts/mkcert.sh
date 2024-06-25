@@ -2,5 +2,7 @@
 
 set -eu
 
+export DEBIAN_FRONTEND=noninteractive
+
 # Install mkcert
-apk add mkcert
+apt-get -yq install mkcert

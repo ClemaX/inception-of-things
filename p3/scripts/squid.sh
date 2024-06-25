@@ -1,0 +1,1 @@
+../../scripts/squid.sh

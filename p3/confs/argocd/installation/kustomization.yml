@@ -6,3 +6,4 @@ resources:
   - ingress.yml
 patches:
   - path: argocd-cmd-params-cm-patch.yml
+  - path: argocd-cm-patch.yml

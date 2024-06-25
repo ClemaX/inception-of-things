@@ -74,9 +74,7 @@ kubectl wait --timeout 15m --for condition=Available deployment -n gitlab --all 
 kubectl wait --timeout 15m --for condition=Ready pods -n argocd --all &
 
 # Restart Squid proxy
-service squid restart &
-
-wait
+systemctl restart squid
 
 cat <<EOF
 Environment deployed successfully!

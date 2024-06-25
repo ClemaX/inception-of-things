@@ -2,47 +2,60 @@ require File.join(File.dirname(__FILE__), "..", "lib", "Provisioner")
 
 VAGRANTFILE_API_VERSION = "2"
 
-VM_NAME="#{ENV['USER']}"
+VM_BOX = "bento/debian-12.5"
+VM_NAME="iot-bonus"
 
-VM_RAM_MB=6144
-VM_CPUS=4
+VM_RAM_MB=8096
+VM_CPUS=8
 
-VM_SUFFIX_SERVER="S"
+VM_K8S_CONF_PATH = "confs"
+VM_K8S_CONF_MOUNTPOINT = "/usr/local/etc/kubernetes"
 
-VM_APPS_PATH="confs"
-VM_APPS_MOUNTPOINT="/mnt/apps"
 
-VM_PROVISION_UPGRADE = "scripts/apk-upgrade.sh"
-VM_PROVISION_SQUID = "scripts/squid.sh"
-VM_PROVISION_GIT = "scripts/git.sh"
 VM_PROVISION_DOCKER = "scripts/docker.sh"
 VM_PROVISION_KUBECTL = "scripts/kubectl.sh"
 VM_PROVISION_K3D = "scripts/k3d.sh"
 VM_PROVISION_HELM = "scripts/helm.sh"
-VM_PROVISION_MKCERT= "scripts/mkcert.sh"
+VM_PROVISION_MKCERT = "scripts/mkcert.sh"
+VM_PROVISION_SQUID = "scripts/squid.sh"
+
+VM_PROVISION_USER = "scripts/user.sh"
 
 VM_PROVISION_DEPLOY = "scripts/deploy.sh"
 
-SERVER_DEPS = [
-	VM_PROVISION_UPGRADE,
-	VM_PROVISION_SQUID,
-	VM_PROVISION_GIT,
+SERVER_DEPS_SYSTEM = [
 	VM_PROVISION_DOCKER,
 	VM_PROVISION_KUBECTL,
 	VM_PROVISION_K3D,
 	VM_PROVISION_HELM,
-	VM_PROVISION_MKCERT
+	VM_PROVISION_MKCERT,
+	VM_PROVISION_SQUID,
+]
+
+SERVER_DEPS_USER = [
+	VM_PROVISION_USER,
 ]
 
 def provision_server(node, config)
-	# Forward HTTP Proxy
+	# Forward Squid HTTP proxy port
 	config.vm.network "forwarded_port", guest: 3128, host: 3128
 
-	# Share apps with K3S Server
-	config.vm.synced_folder VM_APPS_PATH, VM_APPS_MOUNTPOINT, type: "rsync"
+	config.vm.provision "shell",
+		inline: "hostnamectl set-hostname #{node[:name]} && sed -i 's/debian-12$/#{node[:name]}/g' /etc/hosts"
 
-	SERVER_DEPS.each do |script|
+	# Sync K8S config
+	config.vm.synced_folder "#{VM_K8S_CONF_PATH}/", "#{VM_K8S_CONF_MOUNTPOINT}/",
+		type: "rsync",
+		create: true
+
+	SERVER_DEPS_SYSTEM.each do |script|
 		config.vm.provision "shell",
+			path: script
+	end
+
+	SERVER_DEPS_USER.each do |script|
+		config.vm.provision "shell",
+			privileged: false,
 			path: script
 	end
 
@@ -50,20 +63,20 @@ def provision_server(node, config)
 
 	config.vm.provision "shell",
 		path: VM_PROVISION_DEPLOY,
-		args: [VM_APPS_MOUNTPOINT]
+		args: [VM_K8S_CONF_MOUNTPOINT]
 end
 
 nodes = [
 	{
 		type: "server",
-		name: "#{VM_NAME}#{VM_SUFFIX_SERVER}",
+		name: "#{VM_NAME}",
 	},
 ]
 
 provisioner = Provisioner.new()
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
-	config.vm.box = "generic/alpine319"
+	config.vm.box = VM_BOX
 
         config.vm.provider "virtualbox" do |domain|
           domain.memory = VM_RAM_MB

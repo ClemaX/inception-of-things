@@ -38,10 +38,16 @@ done
 kubectl apply -k "$apps_path/argocd/installation"
 
 echo "Waiting for Argo CD pods to be ready..."
-kubectl wait --timeout 15m --for condition=Ready pods -n argocd --all
+until kubectl wait --timeout 15m --for condition=Ready pods -n argocd --all
+do
+	sleep 1
+done
 
 # Install Argo CD App
 kubectl apply -f "$apps_path/dev"
+
+# Restart squid proxy
+systemctl restart squid
 
 cat <<EOF
 Environment deployed successfully!

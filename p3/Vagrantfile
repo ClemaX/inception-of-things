@@ -2,35 +2,43 @@ require File.join(File.dirname(__FILE__), "..", "lib", "Provisioner")
 
 VAGRANTFILE_API_VERSION = "2"
 
-VM_BOX = "generic/debian12"
+VM_BOX = "bento/debian-12.5"
 
-VM_NAME = "#{ENV['USER']}"
+VM_NAME = "iot-p3"
 
-VM_RAM_MB = 4096
-VM_CPUS = 4
-
-VM_SUFFIX_SERVER = "S"
+VM_RAM_MB = 8096
+VM_CPUS = 8
 
 VM_K8S_CONF_PATH = "confs"
-VM_K8S_CONF_MOUNTPOINT = "/mnt/apps"
+VM_K8S_CONF_MOUNTPOINT = "/usr/local/etc/kubernetes"
 
-VM_PROVISION_SYSTEM = "scripts/provision.sh"
-VM_PROVISION_USER = "scripts/provision_user.sh"
+VM_PROVISION_DOCKER = "scripts/docker.sh"
+VM_PROVISION_KUBECTL = "scripts/kubectl.sh"
+VM_PROVISION_K3D = "scripts/k3d.sh"
+VM_PROVISION_SQUID = "scripts/squid.sh"
+
+VM_PROVISION_USER = "scripts/user.sh"
 
 VM_PROVISION_DEPLOY = "scripts/deploy.sh"
 
-VM_IP_SUBNET = "192.168.56"
-VM_IP_HOSTID_BASE = 110
-
 SERVER_DEPS_SYSTEM = [
-	VM_PROVISION_SYSTEM
+	VM_PROVISION_DOCKER,
+	VM_PROVISION_KUBECTL,
+	VM_PROVISION_K3D,
+	VM_PROVISION_SQUID,
 ]
 
 SERVER_DEPS_USER = [
-	VM_PROVISION_USER
+	VM_PROVISION_USER,
 ]
 
 def provision_server(node, config)
+	# Forward Squid HTTP proxy port
+	config.vm.network "forwarded_port", guest: 3128, host: 3128
+
+	config.vm.provision "shell",
+		inline: "hostnamectl set-hostname #{node[:name]} && sed -i 's/debian-12$/#{node[:name]}/g' /etc/hosts"
+
 	# Sync K8S config
 	config.vm.synced_folder "#{VM_K8S_CONF_PATH}/", "#{VM_K8S_CONF_MOUNTPOINT}/",
 		type: "rsync",
@@ -57,11 +65,11 @@ end
 nodes = [
 	{
 		type: "server",
-		name: "#{VM_NAME}#{VM_SUFFIX_SERVER}",
+		name: "#{VM_NAME}",
 	},
 ]
 
-provisioner = Provisioner.new(VM_IP_SUBNET, VM_IP_HOSTID_BASE)
+provisioner = Provisioner.new()
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 	config.vm.box = VM_BOX

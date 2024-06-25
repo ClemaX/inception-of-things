@@ -1,15 +1,12 @@
-#!/bin/sh
+# kubectl
 
 set -eu
 
-# Add edge channel community and testing apk repos
-cat >> /etc/apk/repositories <<EOF
-http://dl-cdn.alpinelinux.org/alpine/edge/community
-http://dl-cdn.alpinelinux.org/alpine/edge/testing
-EOF
+TMP_DIR="$(mktemp -d)"
 
-# Update package lists
-apk update
+pushd "$TMP_DIR"
+	curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+	install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+popd
 
-# Install kubectl package
-apk add kubectl
+rm -rf "$TMP_DIR"
